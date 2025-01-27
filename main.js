@@ -41,7 +41,7 @@ class MyDepthPipeline {
 //   "Xenova/depth-anything-small-hf"
 // );
 
-const depth_estimator = MyDepthPipeline.getInstance();
+const depth_estimator = await MyDepthPipeline.getInstance();
 status.textContent = "Ready";
 
 example.addEventListener("click", (e) => {
