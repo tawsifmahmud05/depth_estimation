@@ -24,10 +24,24 @@ const example = document.getElementById("example");
 
 // Create a new depth-estimation pipeline
 status.textContent = "Loading model...";
-const depth_estimator = await pipeline(
-  "depth-estimation",
-  "Xenova/depth-anything-small-hf"
-);
+
+class MyDepthPipeline {
+  static task = "depth-estimation";
+  static model = "Xenova/depth-anything-small-hf";
+  static instance = null;
+
+  static async getInstance(progress_callback = null) {
+    this.instance ??= pipeline(this.task, this.model, { progress_callback });
+    return this.instance;
+  }
+}
+
+// const depth_estimator = await pipeline(
+//   "depth-estimation",
+//   "Xenova/depth-anything-small-hf"
+// );
+
+const depth_estimator = MyDepthPipeline.getInstance();
 status.textContent = "Ready";
 
 example.addEventListener("click", (e) => {
