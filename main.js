@@ -19,7 +19,8 @@ const DEFAULT_SCALE = 0.75;
 // Reference the elements that we will need
 const status = document.getElementById("status");
 const fileUpload = document.getElementById("upload");
-const imageContainer = document.getElementById("container");
+const imageContainer = document.getElementById("three-container");
+const depthContainer = document.getElementById("depth-container");
 const example = document.getElementById("example");
 
 // Create a new depth-estimation pipeline
@@ -95,6 +96,19 @@ function resizeImage(url, maxWidth = 512, maxHeight = 512) {
   });
 }
 
+function convertOffscreenToCanvas(offscreen) {
+  if (offscreen instanceof OffscreenCanvas) {
+    const regularCanvas = document.createElement("canvas");
+    regularCanvas.width = offscreen.width;
+    regularCanvas.height = offscreen.height;
+
+    const ctx = regularCanvas.getContext("2d");
+    ctx.drawImage(offscreen, 0, 0);
+
+    return regularCanvas;
+  }
+  return offscreen; // Already a regular canvas
+}
 // Predict depth map for the given image
 async function predict(url) {
   imageContainer.innerHTML = "";
@@ -115,6 +129,29 @@ async function predict(url) {
   console.log(depth);
   setDisplacementMap(depth.toCanvas());
   status.textContent = "";
+
+  const depthCanvasOff = depth.toCanvas();
+  const depthCanvas = convertOffscreenToCanvas(depthCanvasOff);
+  const aspectRatio = depthCanvas.width / depthCanvas.height;
+
+  // Create a new canvas for depth map
+  const displayedDepthCanvas = document.createElement("canvas");
+  displayedDepthCanvas.width = 640; // Fixed width
+  displayedDepthCanvas.height = displayedDepthCanvas.width / aspectRatio;
+
+  // Draw the depth map on the new canvas
+  const context = displayedDepthCanvas.getContext("2d");
+  context.drawImage(
+    depthCanvas,
+    0,
+    0,
+    displayedDepthCanvas.width,
+    displayedDepthCanvas.height
+  );
+
+  // Append the depth map canvas
+  depthContainer.appendChild(displayedDepthCanvas);
+  // depthContainer.append(depthCanvas);
 
   // Add slider control
   const slider = document.createElement("input");
