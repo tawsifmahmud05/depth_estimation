@@ -65,10 +65,41 @@ fileUpload.addEventListener("change", function (e) {
 
 let onSliderChange;
 
+function resizeImage(url, maxWidth = 512, maxHeight = 512) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.src = url;
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      let width = img.width;
+      let height = img.height;
+
+      if (width > maxWidth || height > maxHeight) {
+        const aspectRatio = width / height;
+        if (width > height) {
+          width = maxWidth;
+          height = width / aspectRatio;
+        } else {
+          height = maxHeight;
+          width = height * aspectRatio;
+        }
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+      ctx.drawImage(img, 0, 0, width, height);
+
+      resolve(canvas.toDataURL());
+    };
+  });
+}
+
 // Predict depth map for the given image
 async function predict(url) {
   imageContainer.innerHTML = "";
-  const image = await RawImage.fromURL(url);
+  const resizedImage = await resizeImage(url, 512, 512);
+  const image = await RawImage.fromURL(resizedImage);
 
   // Set up scene and slider controls
   const { canvas, setDisplacementMap } = setupScene(
